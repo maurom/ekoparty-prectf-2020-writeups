@@ -1,0 +1,67 @@
+diff --git a/crypto_identifier.py b/crypto_identifier.py
+index 147b3f7..ad04b17 100644
+--- a/crypto_identifier.py
++++ b/crypto_identifier.py
+@@ -190,6 +190,26 @@ def get_printable(text):
+     return None
+ 
+ 
++def sliding_window_set(buffr, keylength):
++    # esto se puede optimizar un monton, pero a los fines practicos, funca
++    keys = set()
++    maxlen = len(buffr) - keylength
++    position = 0
++    while position < maxlen:
++        key = buffr[position:position+keylength]
++        # key = key.replace('\n', '')   # opcionalmente, remover newlines
++        keys.add(key)
++        position += 1
++    return keys
++
++def create_keys(filename):
++    buffr = open(filename, 'rb').read()
++    keys = set()
++    for keylength in range(4, 40):   # podria ser mas, pero limito a proposito la longitud
++        keys.update(sliding_window_set(buffr, keylength))
++    return keys
++
++
+ if __name__ == "__main__":
+     """ Entrypoint
+     """
+@@ -216,12 +236,13 @@ if __name__ == "__main__":
+                         '-m',
+                         help='block chaining mode to use',
+                         choices=MODES.values())
++    parser.add_argument('--keysource')
+ 
+     args = parser.parse_args()
+ 
+     # Check required params
+-    if not args.key and not args.keys:
+-        print("argument --key [PASSWORD] or --keys [FILE] is required")
++    if not args.key and not args.keys and not args.keysource:
++        print("argument --key [PASSWORD] or --keys [FILE] or --keysource [FILE] is required")
+         sys.exit(1)
+ 
+     # Decode input message
+@@ -230,11 +251,15 @@ if __name__ == "__main__":
+     # Handle single password or password file
+     if args.key:
+         keys = [args.key]
+-    else:
++    elif args.keys:
+         keys = []
+         with open(args.keys, "r") as keys_fd:
+             for candidate_key in keys_fd.readlines():
+                 keys.append(candidate_key.strip())
++    elif args.keysource:
++        print('Creating keys from %s ... ' % args.keysource)
++        keys = create_keys(args.keysource)
++        print('%d unique keys' % len(keys))
+ 
+     # Single block chaining mode settings
+     if args.mode is not None:
+-- 
+2.20.1
+

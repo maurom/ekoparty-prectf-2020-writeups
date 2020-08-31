@@ -1,0 +1,20 @@
+diff --git a/crypto_identifier.py b/crypto_identifier.py
+index 24091a0..147b3f7 100644
+--- a/crypto_identifier.py
++++ b/crypto_identifier.py
+@@ -115,9 +115,9 @@ class BlockCipher():
+         try:
+             for size in self.algo.key_size:
+                 if len(key) < size:
+-                    return "%s%s" % (key, ("\0" * (size - len(key))))
++                    return key + (b'\0' * (size - len(key) - 1))
+         except TypeError:
+-            return "%s%s" % (key, ("\0" * (self.algo.key_size - len(key))))
++            return key + b'\0' * (self.algo.key_size - len(key))
+ 
+     def __str__(self):
+         """ Return a printable information string about cipher
+-- 
+2.20.1
+
+
